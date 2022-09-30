@@ -7,12 +7,9 @@ using UnityEngine.SceneManagement;
 
 public class Player : MonoBehaviour
 {
+    private PlayerStats playerStats = new PlayerStats();
     // The speed of the ball.
     public float Speed = 10;
-
-    public TextMeshProUGUI countText;
-
-    public GameObject winTextObject;
 
     public float offsetTime = 5f; // time for regular cubes to respawn
     
@@ -24,29 +21,24 @@ public class Player : MonoBehaviour
     // A reference to the ball's RigitBody component.
     private Rigidbody body;
 
+    private float timer;
+
     // Start is called before the first frame update.
     void Start()
     {
         body = GetComponent<Rigidbody>();
-        // winTextObject.SetActive(false);
-        // SetCountText();
+        timer = 0f;
     }
-
-    // void SetCountText()
-    // {
-    //     countText.text = "Count: " + count.ToString();
-    //     if (count >= 12)
-    //     {
-    //         winTextObject.SetActive(true);
-    //     }
-    // }
 
     // FixedUpdate is called before each step in the physics engine.
     private void FixedUpdate()
     {
-        float horizontalForce = Input.GetAxis("Horizontal") * Speed;
-        float verticalForce = Input.GetAxis("Vertical") * Speed;
-        body.AddForce(new Vector3(horizontalForce, 0, verticalForce));
+        timer += Time.deltaTime;
+        if (timer >= 3){
+            float horizontalForce = Input.GetAxis("Horizontal") * Speed;
+            float verticalForce = Input.GetAxis("Vertical") * Speed;
+            body.AddForce(new Vector3(horizontalForce, 0, verticalForce));
+        }
 
         for (int i = 0; i < NUM_CUBES  ; i++){
             if (cubeTimers[i] >= offsetTime){
@@ -96,12 +88,14 @@ public class Player : MonoBehaviour
     private void resetLevel()
     {
         BoundaryWall.reset();
+        timer = 0f;
         Cube.reset();
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     private void finishLevel()
     {
+        playerStats.addBestTime(timer);
         print("Congrats, you finished!");
     }
 }
