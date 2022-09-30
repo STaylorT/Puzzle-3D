@@ -5,6 +5,11 @@ TagManager:
   serializedVersion: 2
   tags:
   - PickUp
+  - FallThruPlane
+  - ArrowPickUp
+  - FinishPlane
+  - FinishPlatform
+  - finalPlatformGate
   layers:
   - Default
   - TransparentFX

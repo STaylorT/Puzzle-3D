@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BoundaryWalls : MonoBehaviour
+public class BoundaryWall : MonoBehaviour
 {
 
     private static int TOTAL_WALLS = 4;
@@ -19,17 +19,25 @@ public class BoundaryWalls : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        Debug.Log(numWalls);
         body = GetComponent<Rigidbody>();
-        wallID = numWalls;
+        if (wallID == -1){
+            wallID = numWalls;
+        }
         walls[wallID] = body;
-        numWalls++;
+        if (numWalls < (TOTAL_WALLS - 1)){
+            numWalls++;
+        }
     }
 
     // Update is called once per frame
     void Update()
     {
         
+    }
+
+    public static void reset()
+    {
+        numWalls = 0;
     }
 
     public static void removeKinematics()
