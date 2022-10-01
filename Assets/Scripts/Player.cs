@@ -2,17 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 // using BW = BoundaryWall;
 
 public class Player : MonoBehaviour
 {
+    private PlayerStats playerStats = new PlayerStats();
     // The speed of the ball.
     public float Speed = 10;
-
-    public TextMeshProUGUI countText;
-
-    public GameObject winTextObject;
 
     public float offsetTime = 5f; // time for regular cubes to respawn
     
@@ -24,29 +22,40 @@ public class Player : MonoBehaviour
     // A reference to the ball's RigitBody component.
     private Rigidbody body;
 
+    private float timer;
+
+    public GameObject gameOverText;
+
+    public GameObject blackOutSquare;
+
+    public GameObject wonText;
+
+    public Button resetButton;
+
     // Start is called before the first frame update.
     void Start()
     {
-        body = GetComponent<Rigidbody>();
-        // winTextObject.SetActive(false);
-        // SetCountText();
-    }
 
-    // void SetCountText()
-    // {
-    //     countText.text = "Count: " + count.ToString();
-    //     if (count >= 12)
-    //     {
-    //         winTextObject.SetActive(true);
-    //     }
-    // }
+        body = GetComponent<Rigidbody>();
+        gameOverText.SetActive(false);
+        resetButton.gameObject.SetActive(false);
+        wonText.SetActive(false);
+        StartCoroutine(FadeBlackOutSquare(false));
+        timer = 0f;
+        Button btn = resetButton.GetComponent<Button>();
+		btn.onClick.AddListener(resetLevel);
+    }
 
     // FixedUpdate is called before each step in the physics engine.
     private void FixedUpdate()
     {
-        float horizontalForce = Input.GetAxis("Horizontal") * Speed;
-        float verticalForce = Input.GetAxis("Vertical") * Speed;
-        body.AddForce(new Vector3(horizontalForce, 0, verticalForce));
+        // UI = gameObject.GetComponent(typeof(UIController)) as UIController;
+        timer += Time.deltaTime;
+        if (timer >= 3){
+            float horizontalForce = Input.GetAxis("Horizontal") * Speed;
+            float verticalForce = Input.GetAxis("Vertical") * Speed;
+            body.AddForce(new Vector3(horizontalForce, 0, verticalForce));
+        }
 
         for (int i = 0; i < NUM_CUBES  ; i++){
             if (cubeTimers[i] >= offsetTime){
@@ -80,7 +89,7 @@ public class Player : MonoBehaviour
         } 
         else if (other.gameObject.CompareTag("FallThruPlane"))
         {
-            resetLevel();
+            gameOver();
         } 
         else if (other.gameObject.CompareTag("FinalPlatformGate"))
         {
@@ -93,15 +102,53 @@ public class Player : MonoBehaviour
         }
     }
 
+    private void gameOver()
+    {
+        gameOverText.SetActive(true);
+        resetButton.gameObject.SetActive(true);
+        StartCoroutine(FadeBlackOutSquare());
+    }
+
     private void resetLevel()
     {
         BoundaryWall.reset();
+        resetButton.gameObject.SetActive(false);
+        timer = 0f;
         Cube.reset();
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     private void finishLevel()
     {
-        print("Congrats, you finished!");
+        playerStats.addBestTime(timer);
+        wonText.SetActive(true);
+        StartCoroutine(FadeBlackOutSquare());
+    }
+
+    public IEnumerator FadeBlackOutSquare(bool fadeToBlack = true, int fadeSpeed = 10)
+    {
+        Color objectColor = blackOutSquare.GetComponent<Image>().color;
+        float fadeAmount;
+
+        if (fadeToBlack)
+        {
+            while (blackOutSquare.GetComponent<Image>().color.a < 1)
+            {
+                fadeAmount = objectColor.a + (fadeSpeed/10 * Time.deltaTime);
+                objectColor = new Color(objectColor.r, objectColor.g, objectColor.b, fadeAmount);
+                blackOutSquare.GetComponent<Image>().color = objectColor;
+                yield return null;
+            }
+        } else 
+        {
+            while (blackOutSquare.GetComponent<Image>().color.a > 0)
+            {
+                fadeAmount = objectColor.a - (fadeSpeed/10 * Time.deltaTime);
+                objectColor = new Color(objectColor.r, objectColor.g, objectColor.b, fadeAmount);
+                blackOutSquare.GetComponent<Image>().color = objectColor;
+                yield return null;
+            }
+        }
+        yield return new WaitForEndOfFrame();
     }
 }

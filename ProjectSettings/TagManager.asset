@@ -9,7 +9,7 @@ TagManager:
   - ArrowPickUp
   - FinishPlane
   - FinishPlatform
-  - finalPlatformGate
+  - FinalPlatformGate
   layers:
   - Default
   - TransparentFX
