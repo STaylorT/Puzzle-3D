@@ -51,7 +51,7 @@ public class Player : MonoBehaviour
     {
         // UI = gameObject.GetComponent(typeof(UIController)) as UIController;
         timer += Time.deltaTime;
-        if (timer >= 3){
+        if (timer >= 1.5){
             float horizontalForce = Input.GetAxis("Horizontal") * Speed;
             float verticalForce = Input.GetAxis("Vertical") * Speed;
             body.AddForce(new Vector3(horizontalForce, 0, verticalForce));
@@ -122,6 +122,7 @@ public class Player : MonoBehaviour
     {
         playerStats.addBestTime(timer);
         wonText.SetActive(true);
+        resetButton.gameObject.SetActive(true);
         StartCoroutine(FadeBlackOutSquare());
     }
 
