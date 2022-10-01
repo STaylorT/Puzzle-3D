@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 // using BW = BoundaryWall;
 
@@ -23,16 +24,32 @@ public class Player : MonoBehaviour
 
     private float timer;
 
+    public GameObject gameOverText;
+
+    public GameObject blackOutSquare;
+
+    public GameObject wonText;
+
+    public Button resetButton;
+
     // Start is called before the first frame update.
     void Start()
     {
+
         body = GetComponent<Rigidbody>();
+        gameOverText.SetActive(false);
+        resetButton.gameObject.SetActive(false);
+        wonText.SetActive(false);
+        StartCoroutine(FadeBlackOutSquare(false));
         timer = 0f;
+        Button btn = resetButton.GetComponent<Button>();
+		btn.onClick.AddListener(resetLevel);
     }
 
     // FixedUpdate is called before each step in the physics engine.
     private void FixedUpdate()
     {
+        // UI = gameObject.GetComponent(typeof(UIController)) as UIController;
         timer += Time.deltaTime;
         if (timer >= 3){
             float horizontalForce = Input.GetAxis("Horizontal") * Speed;
@@ -72,7 +89,7 @@ public class Player : MonoBehaviour
         } 
         else if (other.gameObject.CompareTag("FallThruPlane"))
         {
-            resetLevel();
+            gameOver();
         } 
         else if (other.gameObject.CompareTag("FinalPlatformGate"))
         {
@@ -85,9 +102,17 @@ public class Player : MonoBehaviour
         }
     }
 
+    private void gameOver()
+    {
+        gameOverText.SetActive(true);
+        resetButton.gameObject.SetActive(true);
+        StartCoroutine(FadeBlackOutSquare());
+    }
+
     private void resetLevel()
     {
         BoundaryWall.reset();
+        resetButton.gameObject.SetActive(false);
         timer = 0f;
         Cube.reset();
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
@@ -96,6 +121,34 @@ public class Player : MonoBehaviour
     private void finishLevel()
     {
         playerStats.addBestTime(timer);
-        print("Congrats, you finished!");
+        wonText.SetActive(true);
+        StartCoroutine(FadeBlackOutSquare());
+    }
+
+    public IEnumerator FadeBlackOutSquare(bool fadeToBlack = true, int fadeSpeed = 10)
+    {
+        Color objectColor = blackOutSquare.GetComponent<Image>().color;
+        float fadeAmount;
+
+        if (fadeToBlack)
+        {
+            while (blackOutSquare.GetComponent<Image>().color.a < 1)
+            {
+                fadeAmount = objectColor.a + (fadeSpeed/10 * Time.deltaTime);
+                objectColor = new Color(objectColor.r, objectColor.g, objectColor.b, fadeAmount);
+                blackOutSquare.GetComponent<Image>().color = objectColor;
+                yield return null;
+            }
+        } else 
+        {
+            while (blackOutSquare.GetComponent<Image>().color.a > 0)
+            {
+                fadeAmount = objectColor.a - (fadeSpeed/10 * Time.deltaTime);
+                objectColor = new Color(objectColor.r, objectColor.g, objectColor.b, fadeAmount);
+                blackOutSquare.GetComponent<Image>().color = objectColor;
+                yield return null;
+            }
+        }
+        yield return new WaitForEndOfFrame();
     }
 }

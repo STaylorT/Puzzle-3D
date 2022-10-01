@@ -8,6 +8,7 @@ public class PlayerStats
 
     private List<float> BestTimes = new List<float>();
 
+
     public void addBestTime(float time)
     {
         BestTimes.Add(time);
