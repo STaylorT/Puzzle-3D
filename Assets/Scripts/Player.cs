@@ -1,4 +1,5 @@
 using System.Collections;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
@@ -6,11 +7,19 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 // using BW = BoundaryWall;
 
+public enum Status
+{
+    Playing,
+    GameOver,
+    GameWon,
+}
 public class Player : MonoBehaviour
 {
     private PlayerStats playerStats = new PlayerStats();
     // The speed of the ball.
-    public float Speed = 10;
+    public float Speed = 12;
+
+    public float Acceleration = 2;
 
     public float offsetTime = 5f; // time for regular cubes to respawn
     
@@ -32,14 +41,26 @@ public class Player : MonoBehaviour
 
     public Button resetButton;
 
+    public Button nextLevelButton;
+
+    public int currLevel = 0;
+
+    public Status playerStatus;
+    
+
+
+
     // Start is called before the first frame update.
     void Start()
     {
+        // RenderSettings.ambientLight = Color.black;
 
         body = GetComponent<Rigidbody>();
         gameOverText.SetActive(false);
-        resetButton.gameObject.SetActive(false);
         wonText.SetActive(false);
+        resetButton.gameObject.SetActive(false);
+        nextLevelButton.gameObject.SetActive(false);
+
         StartCoroutine(FadeBlackOutSquare(false));
         timer = 0f;
         Button btn = resetButton.GetComponent<Button>();
@@ -51,9 +72,22 @@ public class Player : MonoBehaviour
     {
         // UI = gameObject.GetComponent(typeof(UIController)) as UIController;
         timer += Time.deltaTime;
-        if (timer >= 1.5){
-            float horizontalForce = Input.GetAxis("Horizontal") * Speed;
-            float verticalForce = Input.GetAxis("Vertical") * Speed;
+        if (timer >= .1){
+            Vector3 currVel = body.velocity;
+            float horizInput = Input.GetAxis("Horizontal");
+            float verticalInput = Input.GetAxis("Vertical");
+            bool sameHorizDirection = currVel.x * horizInput > 0;
+            bool sameVerticalDirection = currVel.z * verticalInput > 0;
+
+            float horizontalForce =  sameHorizDirection ? horizInput * Speed : horizInput * 4 * Speed;
+            float verticalForce = sameVerticalDirection ? verticalInput * Speed : verticalInput * 4 * Speed;
+
+            if (Math.Abs(currVel.z) > Math.Abs(currVel.x) && verticalInput == 0 && horizInput != 0){
+                horizontalForce *= 2;
+            } else if ( Math.Abs(currVel.x) > Math.Abs(currVel.z) && horizInput == 0 && verticalInput != 0){
+                verticalForce *= 2;
+            }
+
             body.AddForce(new Vector3(horizontalForce, 0, verticalForce));
         }
 
@@ -89,7 +123,10 @@ public class Player : MonoBehaviour
         } 
         else if (other.gameObject.CompareTag("FallThruPlane"))
         {
-            gameOver();
+            if (playerStatus == Status.Playing)
+            {
+                gameOver();
+            }
         } 
         else if (other.gameObject.CompareTag("FinalPlatformGate"))
         {
@@ -104,7 +141,9 @@ public class Player : MonoBehaviour
 
     private void gameOver()
     {
+        playerStatus = Status.GameOver;
         gameOverText.SetActive(true);
+        repositionButton(resetButton, true);
         resetButton.gameObject.SetActive(true);
         StartCoroutine(FadeBlackOutSquare());
     }
@@ -120,10 +159,21 @@ public class Player : MonoBehaviour
 
     private void finishLevel()
     {
-        playerStats.addBestTime(timer);
-        wonText.SetActive(true);
-        resetButton.gameObject.SetActive(true);
+        playerStatus = Status.GameWon;
         StartCoroutine(FadeBlackOutSquare());
+        wonText.SetActive(true);
+        repositionButton(resetButton, false);
+        resetButton.gameObject.SetActive(true);
+        nextLevelButton.gameObject.SetActive(true);
+
+    }
+
+    private void nextLevel()
+    {
+        playerStatus = Status.Playing;
+        currLevel++;
+        SceneManager.LoadScene(currLevel);
+        wonText.SetActive(false);
     }
 
     public IEnumerator FadeBlackOutSquare(bool fadeToBlack = true, int fadeSpeed = 10)
@@ -151,5 +201,18 @@ public class Player : MonoBehaviour
             }
         }
         yield return new WaitForEndOfFrame();
+    }
+
+    private void repositionButton(Button button, bool singleButton) {
+        RectTransform buttonTransform = resetButton.gameObject.GetComponent<RectTransform>();
+        if (singleButton){
+            buttonTransform.anchorMin = new Vector2(.5f, .5f);
+            buttonTransform.anchorMax = new Vector2(.5f, .5f);
+        } else 
+        {
+            buttonTransform.anchorMin = new Vector2(0.25f, .5f);
+            buttonTransform.anchorMax = new Vector2(0.25f, .5f);
+        }
+        
     }
 }
