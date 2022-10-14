@@ -13,7 +13,7 @@ public class FinishPlatform : MonoBehaviour
     {
         body = GetComponent<Rigidbody>();
         finishPlatform = this.gameObject;
-        finishPlatform.SetActive(false);
+        // finishPlatform.SetActive(false);
             
     }
 

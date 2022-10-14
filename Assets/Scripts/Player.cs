@@ -46,9 +46,12 @@ public class Player : MonoBehaviour
     public int currLevel = 0;
 
     public Status playerStatus;
-    
 
+    public Camera mainCamera;
 
+    public Camera povCamera;
+
+    public Light spotLight;
 
     // Start is called before the first frame update.
     void Start()
@@ -128,15 +131,27 @@ public class Player : MonoBehaviour
                 gameOver();
             }
         } 
-        else if (other.gameObject.CompareTag("FinalPlatformGate"))
+        else if (other.gameObject.CompareTag("Stage1CompleteTrigger"))
         {
-            FinishPlatform.makeVisible();
+            beginStage2();
+            // FinishPlatform.makeVisible();
             // make the finalPlat visible.
         }
         else if (other.gameObject.CompareTag("FinishPlane"))
         {
             finishLevel();
         }
+    }
+
+    private void beginStage2()
+    {
+
+        GameObject.Find("Area1").SetActive(false);
+        GameObject.Find("Area2").SetActive(true);
+        spotLight.transform.position += new Vector3(0, -20, 0);
+        mainCamera.transform.Rotate(0, 180, 0);
+        povCamera.transform.Rotate(0, 180, 0);
+
     }
 
     private void gameOver()
