@@ -3,7 +3,14 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - FinalPlatformGate
+  - FinishPlane
+  - FinishPlatform
+  - FallThruPlane
+  - PickUp
+  - ArrowPickUp
+  - Stage1CompleteTrigger
   layers:
   - Default
   - TransparentFX

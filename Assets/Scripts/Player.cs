@@ -13,11 +13,14 @@ public enum Status
     GameOver,
     GameWon,
 }
+
 public class Player : MonoBehaviour
 {
     private PlayerStats playerStats = new PlayerStats();
     // The speed of the ball.
     public float Speed = 12;
+
+    public bool facingFront = true;
 
     public float Acceleration = 2;
 
@@ -39,6 +42,8 @@ public class Player : MonoBehaviour
 
     public GameObject wonText;
 
+    public GameObject area2;
+
     public Button resetButton;
 
     public Button nextLevelButton;
@@ -46,20 +51,25 @@ public class Player : MonoBehaviour
     public int currLevel = 0;
 
     public Status playerStatus;
-    
 
+    public Camera mainCamera;
 
+    public Camera povCamera;
+
+    public Camera birdEyeCamera;
+
+    public Light spotLight;
 
     // Start is called before the first frame update.
     void Start()
     {
         // RenderSettings.ambientLight = Color.black;
-
         body = GetComponent<Rigidbody>();
         gameOverText.SetActive(false);
         wonText.SetActive(false);
         resetButton.gameObject.SetActive(false);
         nextLevelButton.gameObject.SetActive(false);
+        area2.SetActive(false);
 
         StartCoroutine(FadeBlackOutSquare(false));
         timer = 0f;
@@ -74,11 +84,18 @@ public class Player : MonoBehaviour
         timer += Time.deltaTime;
         if (timer >= .1){
             Vector3 currVel = body.velocity;
-            float horizInput = Input.GetAxis("Horizontal");
-            float verticalInput = Input.GetAxis("Vertical");
+            float horizInput = facingFront ? Input.GetAxis("Horizontal") : -Input.GetAxis("Horizontal");
+            float verticalInput = facingFront ? Input.GetAxis("Vertical") : -Input.GetAxis("Vertical")  ;
+            
+
+            if (birdEyeCamera.enabled){ // intuitive controls on camera rotate
+                float temp = horizInput;
+                horizInput = -verticalInput;
+                verticalInput = temp;
+            } 
             bool sameHorizDirection = currVel.x * horizInput > 0;
             bool sameVerticalDirection = currVel.z * verticalInput > 0;
-
+            
             float horizontalForce =  sameHorizDirection ? horizInput * Speed : horizInput * 4 * Speed;
             float verticalForce = sameVerticalDirection ? verticalInput * Speed : verticalInput * 4 * Speed;
 
@@ -87,9 +104,15 @@ public class Player : MonoBehaviour
             } else if ( Math.Abs(currVel.x) > Math.Abs(currVel.z) && horizInput == 0 && verticalInput != 0){
                 verticalForce *= 2;
             }
-
+            
             body.AddForce(new Vector3(horizontalForce, 0, verticalForce));
+            
+            
+            
+            
         }
+
+        
 
         for (int i = 0; i < NUM_CUBES  ; i++){
             if (cubeTimers[i] >= offsetTime){
@@ -128,15 +151,28 @@ public class Player : MonoBehaviour
                 gameOver();
             }
         } 
-        else if (other.gameObject.CompareTag("FinalPlatformGate"))
+        else if (other.gameObject.CompareTag("Stage1CompleteTrigger"))
         {
-            FinishPlatform.makeVisible();
+            beginStage2();
+            // FinishPlatform.makeVisible();
             // make the finalPlat visible.
         }
         else if (other.gameObject.CompareTag("FinishPlane"))
         {
             finishLevel();
         }
+    }
+
+    private void beginStage2()
+    {
+        GameObject.Find("Area1").SetActive(false);
+        facingFront = false;
+        area2.SetActive(true);
+        // spotLight.transform.position += new Vector3(0, -20, 0);
+        // mainCamera.transform.position += new Vector3(0, 0, 10); 
+        mainCamera.transform.Rotate(0, 180, 0);
+        povCamera.transform.Rotate(0, 180, 0);
+
     }
 
     private void gameOver()
