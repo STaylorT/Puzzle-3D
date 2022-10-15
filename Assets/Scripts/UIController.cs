@@ -6,68 +6,77 @@ using TMPro;
 
 public class UIController : MonoBehaviour
 {
+    public GameObject player;
+
+    public GameObject gameOverText;
+
     public GameObject blackOutSquare;
 
-    public GameObject mainText;
+    public GameObject wonText;
 
-    private string prevState = "";
+    public GameObject nextLevelText;
 
-    private string currState = "";
+    public GameObject area2;
+
+    public Button resetButton;
+
+    public Button nextLevelButton;
 
     // Start is called before the first frame update
     void Start()
     {
         StartCoroutine(FadeBlackOutSquare(false));
-        // mainText.SetActive(false);
+        gameOverText.SetActive(false);
+        wonText.SetActive(false);
+        resetButton.gameObject.SetActive(false);
+        nextLevelButton.gameObject.SetActive(false);
+        nextLevelText.SetActive(false);
+        resetButton.onClick.AddListener(player.GetComponent<Player>().resetLevel);
+        nextLevelButton.onClick.AddListener(player.GetComponent<Player>().nextLevel); 
     }
-
-    // void setMainText(string text)
-    // {
-    //     mainText.text = text;
-    //     // if (count >= 12)
-    //     // {
-    //     //     winTextObject.SetActive(true);
-    //     // }
-    // }
 
     // Update is called once per frame
     void Update()
     {
-        prevState = currState;
-        // currState = Player.state;
-
-        if (prevState != currState){
-            print("not equal!");
-            if (currState == "dead"){
-                print("curr state is dead!");
-                gameOver();
-            }
-        }
-
-        if (Input.GetKeyDown(KeyCode.T))
-        {
-            print("starting co");
-            StartCoroutine(FadeBlackOutSquare());
-        }
-        if (Input.GetKeyDown(KeyCode.G))
-        {
-            print("starting down co");
-            StartCoroutine(FadeBlackOutSquare(false));
-        }
         
     }
 
-    public void gameOver()
+    public void handleEvent(Status playerStatus)
     {
-        // setMainText("Game Over");
-        // mainText.SetActive(true);
-        StartCoroutine(FadeBlackOutSquare());
-    }
-
-    public void nextLevel()
-    {
-        // setMainText("Level x");
-        StartCoroutine(FadeBlackOutSquare());
+        switch (playerStatus){
+            case Status.BeginGame:
+                StartCoroutine(FadeBlackOutSquare(true));
+                StartCoroutine(FadeBlackOutSquare(false));
+                break;
+            case Status.Playing:
+                StartCoroutine(FadeBlackOutSquare(false));
+                gameOverText.SetActive(false);
+                wonText.SetActive(false);
+                resetButton.gameObject.SetActive(false);
+                nextLevelButton.gameObject.SetActive(false);
+                nextLevelText.SetActive(false);
+                break;
+            case Status.LevelComplete:
+                StartCoroutine(FadeBlackOutSquare());
+                nextLevelText.GetComponent<TextMeshProUGUI>().text = "level " + player.GetComponent<Player>().currLevel + 1;
+                nextLevelText.SetActive(true);
+                nextLevelButton.gameObject.SetActive(true);
+                resetButton.gameObject.SetActive(true);
+                break;
+            case Status.GameOver:
+                gameOverText.SetActive(true);
+                repositionButton(resetButton, true);
+                resetButton.gameObject.SetActive(true);
+                nextLevelText.SetActive(true);
+                StartCoroutine(FadeBlackOutSquare());
+                break;
+            case Status.GameWon:
+                wonText.SetActive(true);
+                break;
+            default:
+                print("Default Switch");
+                break;
+        }
     }
 
     public IEnumerator FadeBlackOutSquare(bool fadeToBlack = true, int fadeSpeed = 10)
@@ -95,5 +104,18 @@ public class UIController : MonoBehaviour
             }
         }
         yield return new WaitForEndOfFrame();
+    }
+
+    private void repositionButton(Button button, bool singleButton) {
+        RectTransform buttonTransform = resetButton.gameObject.GetComponent<RectTransform>();
+        if (singleButton){
+            buttonTransform.anchorMin = new Vector2(.5f, .5f);
+            buttonTransform.anchorMax = new Vector2(.5f, .5f);
+        } else 
+        {
+            buttonTransform.anchorMin = new Vector2(0.25f, .5f);
+            buttonTransform.anchorMax = new Vector2(0.25f, .5f);
+        }
+        
     }
 }
