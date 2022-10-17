@@ -11,6 +11,9 @@ TagManager:
   - PickUp
   - ArrowPickUp
   - Stage1CompleteTrigger
+  - OnStage2Trigger
+  - LevelCompleteTrigger
+  - FinishLevel1
   layers:
   - Default
   - TransparentFX

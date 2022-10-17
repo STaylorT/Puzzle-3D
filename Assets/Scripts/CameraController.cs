@@ -7,6 +7,8 @@ public class CameraController : MonoBehaviour
 	public const int NUMBER_OF_CAMERAS = 3;
 	// A reference to the player object.
 	public GameObject Player;
+
+	public bool flipped = false;
 		
 	// The distance between the camera and the player object.
 	private Vector3 mainOffset;
@@ -42,7 +44,7 @@ public class CameraController : MonoBehaviour
 	void LateUpdate()
 	{
 		if (sceneCameras[currCamera].name == "Main Camera"){
-			sceneCameras[currCamera].transform.position = Player.transform.position + mainOffset;
+			sceneCameras[currCamera].transform.position = flipped ? Player.transform.position + (mainOffset - new Vector3(0,0,-20)) : Player.transform.position + mainOffset;
 		} else if (sceneCameras[currCamera].name == "povCamera") {
 			sceneCameras[currCamera].transform.position = Player.transform.position + povOffset;
 		}
